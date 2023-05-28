@@ -33,6 +33,11 @@ class Account{
         return (new Database('accounts'))->update($where, $values);
     }
 
+    public static function addCoins($where = null, $coins = 0){
+        $query = 'UPDATE accounts SET coins=coins+? WHERE '.$where;
+        return (new Database('accounts'))->execute($query, [$coins]);
+    }
+
     public static function getAuthentication($where = null, $order = null, $limit = null, $fields = '*'){
         return (new Database('account_authentication'))->select($where, $order, $limit, $fields);
     }

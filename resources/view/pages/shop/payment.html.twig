@@ -22,52 +22,57 @@ var g_PaymentMethodCategories = [
 32,
 144,
 145,
+146,
 81,
 90
 ];
 var g_Prices = {
 "120": {
-"11": "47.00 BRL",
-"21": "47.00 BRL",
-"22": "47.00 BRL",
-"31": "47.00 BRL",
-"32": "47.00 BRL",
-"144": "47.00 BRL",
-"145": "47.00 BRL",
-"81": "47.38 BRL",
+"11": "47.00 USD",
+"21": "47.00 USD",
+"22": "47.00 USD",
+"31": "47.00 USD",
+"32": "47.00 USD",
+"144": "47.00 USD",
+"145": "47.00 USD",
+"146": "47.00 USD",
+"81": "47.38 USD",
 "90": "price on application"
 },
 "121": {
-"11": "128.00 BRL",
-"21": "128.00 BRL",
-"22": "128.00 BRL",
-"31": "128.00 BRL",
-"32": "128.00 BRL",
-"144": "128.00 BRL",
-"145": "128.00 BRL",
-"81": "127.51 BRL",
+"11": "128.00 USD",
+"21": "128.00 USD",
+"22": "128.00 USD",
+"31": "128.00 USD",
+"32": "128.00 USD",
+"144": "128.00 USD",
+"145": "128.00 USD",
+"146": "128.00 USD",
+"81": "127.51 USD",
 "90": "price on application"
 },
 "122": {
-"11": "227.00 BRL",
-"21": "227.00 BRL",
-"22": "227.00 BRL",
-"31": "227.00 BRL",
-"32": "227.00 BRL",
-"144": "227.00 BRL",
-"145": "227.00 BRL",
-"81": "226.54 BRL",
+"11": "227.00 USD",
+"21": "227.00 USD",
+"22": "227.00 USD",
+"31": "227.00 USD",
+"32": "227.00 USD",
+"144": "227.00 USD",
+"145": "227.00 USD",
+"146": "227.00 USD",
+"81": "226.54 USD",
 "90": "price on application"
 },
 "123": {
-"11": "397.00 BRL",
-"21": "397.00 BRL",
-"22": "397.00 BRL",
-"31": "397.00 BRL",
-"32": "397.00 BRL",
-"144": "397.00 BRL",
-"145": "397.00 BRL",
-"81": "396.64 BRL",
+"11": "397.00 USD",
+"21": "397.00 USD",
+"22": "397.00 USD",
+"31": "397.00 USD",
+"32": "397.00 USD",
+"144": "397.00 USD",
+"145": "397.00 USD",
+"146": "397.00 USD",
+"81": "396.64 USD",
 "90": "price on application"
 }
 };
@@ -205,8 +210,8 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 					</div>
 				</div>
 				<div class="CustomerIdentification">Order for:
-					<span id="DisplayEMail" onmousedown="ToggleMaskedText('EMail');">********@email.com</span>
-					<span id="MaskedEMail">********@email.com</span>
+					<span id="DisplayEMail" onmousedown="ToggleMaskedText('EMail');">********@***.***</span>
+					<span id="MaskedEMail">********@***.***</span>
 					<span id="ReadableEMail">{{ email }}</span>
 					<div><img id="ButtonEMail" onmousedown="ToggleMaskedText('EMail');" src="{{IMAGE_PATH}}/global/general/show.gif"></div>
 				</div>
@@ -235,7 +240,7 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 										<div class="InnerTableContainer" style="max-width: unset;">
 											<table style="width:100%;">
 												<tbody>
-													<tr>
+													<tr style="display: none;">
 														<td>
 															<div class="TableContentContainer">
 																<table class="TableContent" width="100%" style="border:1px solid #faf0d7;">
@@ -276,7 +281,7 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 																					<option value="BQ">Bonaire, Sint Eustatius and Saba</option>
 																					<option value="BA">Bosnia and Herzegovina</option>
 																					<option value="BW">Botswana</option>
-																					<option value="BR" selected="">Brazil</option>
+																					<option value="BR">Brazil</option>
 																					<option value="IO">British Indian Ocean Territory</option>
 																					<option value="BN">Brunei Darussalam</option>
 																					<option value="BG">Bulgaria</option>
@@ -474,7 +479,7 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 																					<option value="UA">Ukraine</option>
 																					<option value="AE">United Arab Emirates</option>
 																					<option value="GB">United Kingdom</option>
-																					<option value="US">United States</option>
+																					<option value="US" selected>United States</option>
 																					<option value="UY">Uruguay</option>
 																					<option value="UZ">Uzbekistan</option>
 																					<option value="VU">Vanuatu</option>
@@ -541,7 +546,7 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 																											<input type="radio" id="ServiceID_{{ product.web_id }}" name="payment_coins" value="{{ product.coins }}" style="display: none;">{{ product.coins }} Coins
 																										</div>
 																									</div>
-																									<div class="ServiceIDPriceContainer"><span class="ServiceIDPrice" id="PD_{{ product.web_id }}">{{ product.final_price }}.00 BRL</span>*</div>
+																									<div class="ServiceIDPriceContainer"><span class="ServiceIDPrice" id="PD_{{ product.web_id }}">{{ product.final_price }}.00 USD</span>*</div>
 																								</label>
 																							</div>
 																						</div>
@@ -564,7 +569,7 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 															</div>
 														</td>
 													</tr>
-													<tr>
+													<tr style="display: none">
 														<td>
 															<div class="TableContentContainer">
 																<table class="TableContent" width="100%" style="border:1px solid #faf0d7;">
@@ -648,6 +653,33 @@ $('#ServiceID_Icon_Over_' + a_ServiceID).css('background-image', '');
 																							<div class="PMCID_CP_Label">
 																								<input type="radio" id="PMCID_144" name="payment_method" value="mercadopago" style="display: none;">
 																								<label for="PMCID_144">Mercado Pago
+																								</label>
+																							</div>
+																						</div>
+																					</div>
+																					{% endif %}
+																					{% if active_stripe == 1 %}
+																					<div class="PMCID_Icon_Container" id="PMCID_Icon_Container_146">
+																						<div class="PMCID_Icon" id="PMCID_Icon_146" style="background-image:url({{IMAGE_PATH}}//payment/pmcid_icon_normal.png);" onclick="ChangePMC(146);" onmouseover="MouseOverPMCID(146);" onmouseout="MouseOutPMCID(146);">
+																							<div class="PermanentDeactivated PMCID_Deactivated_ByChoice" id="PMCID_NotAllowed_146" style="display: none;" "=" ">
+																								<span class="HelperDivIndicator" onmouseover="ActivateHelperDiv($(this), 'Payment Method Info:', '<p>The payment method is not allowed for the selected service!</p>', '');" onmouseout="$('#HelperDivContainer').hide();">
+																									<div class="PMCID_Deactivated" style="background-image: url({{IMAGE_PATH}}/payment/pmcid_deactivated.png);"></div>
+																								</span>
+																							</div>
+																							<div class="PMCID_Icon_Selected" id="PMCID_Icon_Selected_146"></div>
+																							<div class="PMCID_Icon_Over" id="PMCID_Icon_Over_146"></div>
+																							<div class="PMCID_QuicknessIndicator">
+																								<span class="HelperDivIndicator" onmouseover="ActivateHelperDiv($(this), 'Usual Process Time:', '<p>It usually takes <b>several minutes</b> until you receive the ordered product if you use this payment method.</p><p>However, in some cases, the process time <b>can also take several days!</b></p>', '');" onmouseout="$('#HelperDivContainer').hide();">
+																									<div class="PMCID_QuicknessIndicatorLabelContainer">
+																										<div class="PMCID_QuicknessIndicatorLabel">Usual Process Time:<br>very fast</div>
+																									</div>
+																								</span>
+																							</div>
+																							<span style="position: absolute; left: 125px; top: 53px; z-index: 99;"></span>
+																							<img class="PMCID_CP_Icon" src="{{IMAGE_PATH}}/payment/paymentmethodcategory146.png" width="24" style="margin-top: 16px;">
+																							<div class="PMCID_CP_Label">
+																								<input type="radio" id="PMCID_146" name="payment_method" value="stripe" style="display: none;" checked>
+																								<label for="PMCID_146">Stripe
 																								</label>
 																							</div>
 																						</div>

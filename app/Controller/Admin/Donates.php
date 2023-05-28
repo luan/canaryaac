@@ -196,6 +196,7 @@ class Donates extends Base{
             'active_mercadopago' => $dbServer->mercadopago,
             'active_paypal' => $dbServer->paypal,
             'active_pagseguro' => $dbServer->pagseguro,
+            'active_stripe' => $dbServer->stripe,
             'coin_price' => $dbServer->coin_price
         ]);
         return parent::getPanel('Donates', $content, 'donates');

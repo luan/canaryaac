@@ -92,8 +92,8 @@ if (!isOpenLightbox){
 						</div>
 					</div>
 					<div class="CustomerIdentification">Order for:
-						<span id="DisplayEMail" onmousedown="ToggleMaskedText('EMail');">********@email.com</span>
-						<span id="MaskedEMail">********@email.com</span>
+						<span id="DisplayEMail" onmousedown="ToggleMaskedText('EMail');">********@***.***</span>
+						<span id="MaskedEMail">********@***.***</span>
 						<span id="ReadableEMail">{{ email }}</span>
 						<div><img id="ButtonEMail" onmousedown="ToggleMaskedText('EMail');" src="{{IMAGE_PATH}}/global/general/show.gif"></div>
 					</div>
@@ -127,7 +127,7 @@ if (!isOpenLightbox){
 																<table class="TableContent" width="100%" style="border:1px solid #faf0d7;">
 																	<tbody>
 																		<tr>
-																			<td>Thank you for your order. After clicking on "Next" you will be redirected to BoaCompra in order to carry out the payment. Please keep in mind that depending on the selected payment method your order may take several days to be finalised, particularly when using an offline payment method (e.g. bank transfer or Boleto Bancário).</td>
+																			<td>Thank you for your order. A total of {{coins}} coins have added to your balance.</td>
 																		</tr>
 																	</tbody>
 																</table>
@@ -171,7 +171,7 @@ if (!isOpenLightbox){
 						</div>
 						{% endif %}
 						<div class="RightButton" style="padding: 10px;">
-							<a href="{{URL}}/payment" style="padding:0px;margin:0px;">
+							<a href="{{URL}}/account/manage" style="padding:0px;margin:0px;">
 								<div class="BigButton" style="background-image:url({{IMAGE_PATH}}/global/buttons/button_blue.gif)">
 									<div onmouseover="MouseOverBigButton(this);" onmouseout="MouseOutBigButton(this);"><div class="BigButtonOver" style="background-image:url({{IMAGE_PATH}}/global/buttons/button_blue_over.gif);"></div><input class="BigButtonText" type="submit" value="Back"></div>
 								</div>

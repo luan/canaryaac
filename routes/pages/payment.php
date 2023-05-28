@@ -7,6 +7,7 @@ use App\Controller\Pages\PremiumFeatures;
 use App\Payment\MercadoPago\NotifyMercadoPago;
 use App\Payment\PagSeguro\NotifyPagSeguro;
 use App\Payment\PayPal\NotifyPayPal;
+use App\Payment\Stripe\NotifyStripe;
 
 $obRouter->get('/payment', [
     'middlewares' => [
@@ -30,6 +31,14 @@ $obRouter->post('/payment/confirm', [
     ],
     function($request){
         return new Response(200, Payment::viewPaymentConfirm($request));
+    }
+]);
+$obRouter->get('/payment/summary', [
+    'middlewares' => [
+        'required-login'
+    ],
+    function($request){
+        return new Response(200, Payment::viewPaymentSummary($request));
     }
 ]);
 $obRouter->post('/payment/summary', [
@@ -71,6 +80,11 @@ $obRouter->get('/payment/paypal/return', [
 $obRouter->post('/payment/paypal/return', [
     function($request){
         return new Response(200, NotifyPayPal::ReturnPayPal($request));
+    }
+]);
+$obRouter->get('/payment/stripe/return', [
+    function($request){
+        return new Response(200, NotifyStripe::ReturnStripe($request));
     }
 ]);
 

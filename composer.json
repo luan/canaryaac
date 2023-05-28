@@ -24,6 +24,7 @@
     "symfony/mailer": "^5.4",
     "pragmarx/google2fa": "^8.0",
     "team-reflex/discord-php": "^7.2",
-    "nesbot/carbon": "^2.66"
+    "nesbot/carbon": "^2.66",
+    "stripe/stripe-php": "^10.14"
   }
 }

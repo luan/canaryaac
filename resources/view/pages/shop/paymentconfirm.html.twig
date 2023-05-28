@@ -60,12 +60,16 @@
 					</div>
 				</div>
 				<div class="CustomerIdentification">Order for:
-					<span id="DisplayEMail" onmousedown="ToggleMaskedText('EMail');">********@email.com</span>
-					<span id="MaskedEMail">********@email.com</span>
+					<span id="DisplayEMail" onmousedown="ToggleMaskedText('EMail');">********@***.***</span>
+					<span id="MaskedEMail">********@***.***</span>
 					<span id="ReadableEMail">{{ email }}</span>
 					<div><img id="ButtonEMail" onmousedown="ToggleMaskedText('EMail');" src="{{IMAGE_PATH}}/global/general/show.gif"></div>
 				</div>
+				{% if clientSecret %}
+				<form id="payment-form">
+				{% else %}
 				<form method="post" action="{{URL}}/payment/summary">
+				{% endif %}
 				<div class="TableContainer">
 					<div class="CaptionContainer">
 						<div class="CaptionInnerContainer">
@@ -102,7 +106,7 @@
 																	</tr>
 																	<tr>
 																		<td class="LabelV200">Price</td>
-																		<td>{{ price }} BRL</td>
+																		<td>{{ price }} USD</td>
 																	</tr>
 																</tbody>
 															</table>
@@ -119,7 +123,7 @@
 																		<td>{{ method }}</td>
 																		<input type="hidden" name="payment_method" value="{{ method }}">
 																	</tr>
-																	<tr>
+																	<tr style="display: none;">
 																		<td class="LabelV200">Country:</td>
 																		<td>{{ country }}</td>
 																		<input type="hidden" name="payment_country" value="{{ country }}">
@@ -128,6 +132,16 @@
 																		<td class="LabelV200">E-Mail Address:</td>
 																		<td>{{ email }}</td>
 																		<input type="hidden" name="payment_email" value="{{ email }}">
+																	</tr>
+																	<tr>
+																		<td colspan="2">
+																			{% if clientSecret %}
+																				<div id="payment-element">
+																					<!--Stripe.js injects the Payment Element-->
+																				</div>
+																				<div id="payment-message" class="hidden" style="text-align: center; margin: 8px; font-size: 12pt;"></div>
+																			{% endif %}
+																		</td>
 																	</tr>
 																</tbody>
 															</table>
@@ -141,10 +155,7 @@
 																<tbody>
 																	<tr>
 																		<td colspan="2">
-																			<input type="checkbox" name="TermsOfService" value="1" id="AgreementsCheckbox">
-																			<span>
-																				<label for="AgreementsCheckbox">I have read and I agree to the Extended Tibia Service Agreement and the Tibia Privacy Policy.</label>
-																			</span>
+																			By continuing this order I certify that I have read and I agree to the Extended Tibia Service Agreement and the Tibia Privacy Policy.
 																		</td>
 																	</tr>
 																</tbody>
@@ -161,11 +172,15 @@
 					</table>
 				</div>
 				<div class="SubmitButtonRow" style="display: flex; justify-content: center;">
-					<div class="LeftButton" style="padding: 10px;">
+					<button id="submit" class="LeftButton" style="padding: 10px;">
 						<div class="BigButton" style="background-image:url({{IMAGE_PATH}}/global/buttons/button_green.gif)">
-							<div onmouseover="MouseOverBigButton(this);" onmouseout="MouseOutBigButton(this);"><div class="BigButtonOver" style="background-image:url({{IMAGE_PATH}}/global/buttons/button_green_over.gif);"></div><input class="BigButtonText" type="submit" value="Buy Now"></div>
+							<div onmouseover="MouseOverBigButton(this);" onmouseout="MouseOutBigButton(this);"><div class="BigButtonOver" style="background-image:url({{IMAGE_PATH}}/global/buttons/button_green_over.gif);"></div>
+								<div class="BigButtonText" id="button-text">
+									Buy now
+								</div>
+							</div>
 						</div>
-					</div>
+					</button>
 					<div class="RightButton" style="padding: 10px;">
 						<a href="{{URL}}/payment">
 							<div class="BigButton" style="background-image:url({{IMAGE_PATH}}/global/buttons/button_blue.gif)">
@@ -186,3 +201,94 @@
 		<div class="Corner-br" style="background-image:url({{IMAGE_PATH}}/global/content/corner-br.gif);"></div>
 	</div>
 </div>
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+// This is your test publishable API key.
+const stripe = Stripe("{{STRIPE_PUBLIC_KEY}}");
+
+// The items the customer wants to buy
+const items = [{ id: "xl-tshirt" }];
+
+let elements;
+
+initialize();
+async function initialize() {
+  elements = stripe.elements({ clientSecret: "{{ clientSecret }}", appearance: {
+		theme: "flat",
+		  variables: {
+				colorPrimary: '#007000',
+				colorBackground: '#ffffff',
+				colorText: '#5A2800',
+				colorDanger: '#df1b41',
+				fontFamily: 'Verdana, Arial, Times New Roman, sans-serif',
+				fontSizeBase: '10pt',
+				spacingUnit: '2px',
+				borderRadius: '2px',
+			}
+	} });
+
+  const paymentElementOptions = {
+    layout: "tabs",
+  };
+
+  const paymentElement = elements.create("payment", paymentElementOptions);
+  paymentElement.mount("#payment-element");
+}
+
+document
+  .querySelector("#payment-form")
+  .addEventListener("submit", handleSubmit);
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  setLoading(true);
+
+  const { error } = await stripe.confirmPayment({
+    elements,
+    confirmParams: {
+      return_url: "{{URL}}/payment/stripe/return",
+    },
+  });
+
+  // This point will only be reached if there is an immediate error when
+  // confirming the payment. Otherwise, your customer will be redirected to
+  // your `return_url`. For some payment methods like iDEAL, your customer will
+  // be redirected to an intermediate site first to authorize the payment, then
+  // redirected to the `return_url`.
+  if (error.type === "card_error" || error.type === "validation_error") {
+    showMessage(error.message);
+  } else {
+    showMessage("An unexpected error occurred.");
+  }
+
+  setLoading(false);
+}
+
+// ------- UI helpers -------
+
+function showMessage(messageText) {
+  const messageContainer = document.querySelector("#payment-message");
+
+  messageContainer.classList.remove("hidden");
+  messageContainer.textContent = messageText;
+
+  setTimeout(function () {
+    messageContainer.classList.add("hidden");
+    messageText.textContent = "";
+  }, 4000);
+}
+
+// Show a spinner on payment submission
+function setLoading(isLoading) {
+  if (isLoading) {
+    // Disable the button and show a spinner
+    document.querySelector("#submit").disabled = true;
+    document.querySelector("#button-text").innerHTML = 'Processing...'
+  } else {
+    document.querySelector("#submit").disabled = false;
+    document.querySelector("#button-text").innerHTML = 'Pay now'
+  }
+}
+</script>

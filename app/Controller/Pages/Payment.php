@@ -18,6 +18,21 @@ use App\Session\Admin\Login as SessionAdminLogin;
 use App\Model\Entity\Payments as EntityPayments;
 use App\Model\Entity\ServerConfig as EntityServerConfig;
 
+\Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
+
+function calculatePrice($coins) {
+    $priceMap = [
+        100 => 2,
+        250 => 5,
+        600 => 10,
+        1600 => 25,
+        3400 => 50,
+        7000 => 100
+    ];
+
+    return $priceMap[$coins] ?? null;
+}
+
 class Payment extends Base{
 
     public static function viewPayment()
@@ -30,7 +45,7 @@ class Payment extends Base{
         $product_web_id = 192;
         while ($product = $select_products->fetchObject()) {
             $product_web_id++;
-            $final_price = $donateConfigs->coin_price * $product->coins;
+            $final_price = calculatePrice($product->coins);
             $arrayProducts[] = [
                 'id' => $product->id,
                 'coins' => $product->coins,
@@ -45,6 +60,7 @@ class Payment extends Base{
             'active_mercadopago' => $donateConfigs->mercadopago,
             'active_pagseguro' => $donateConfigs->pagseguro,
             'active_paypal' => $donateConfigs->paypal,
+            'active_stripe' => $donateConfigs->stripe,
         ]);
         return parent::getBase('Webshop', $content, 'donate');
     }
@@ -65,6 +81,7 @@ class Payment extends Base{
             $request->getRouter()->redirect('/payment');
         }
 
+
         $content = View::render('pages/shop/paymentdata', [
             'country' => $postVars['payment_country'],
             'coins' => $postVars['payment_coins'],
@@ -77,6 +94,7 @@ class Payment extends Base{
     public static function viewPaymentConfirm($request)
     {
         $donateConfigs = EntityServerConfig::getInfoWebsite([ 'id' => 1])->fetchObject();
+        $idLogged = SessionAdminLogin::idLogged();
         $postVars = $request->getPostVars();
 
         if(!isset($postVars['payment_email'])){
@@ -87,7 +105,38 @@ class Payment extends Base{
         }
 
         $filter_coins = filter_var($postVars['payment_coins'], FILTER_SANITIZE_NUMBER_INT);
-        $final_price = $filter_coins * $donateConfigs->coin_price;
+        $final_price = calculatePrice($filter_coins);
+
+        $stripeClientSecret = null;
+        $filter_method = filter_var($postVars['payment_method'], FILTER_SANITIZE_SPECIAL_CHARS);
+        if ($filter_method == 'stripe') {
+            if (!$final_price) {
+                $request->getRouter()->redirect('/payment');
+            }
+
+            $paymentIntent = \Stripe\PaymentIntent::create([
+                'amount' => $final_price * 100,
+                'currency' => 'usd',
+                'description' => 'Purchase of ' . $filter_coins . ' Elysiera coins',
+                'statement_descriptor' => $filter_coins . ' Elysiera coins',
+                'receipt_email' => $dbAccount->email ?? null,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+            ]);
+            $order = [
+                'account_id' => $idLogged,
+                'method' => 'stripe',
+                'reference' => $paymentIntent->id,
+                'total_coins' => $filter_coins,
+                'final_price' => $final_price,
+                'status' => 0,
+                'date' => strtotime(date('Y-m-d h:i:s')),
+            ];
+            EntityPayments::insertPayment($order);
+
+            $stripeClientSecret = $paymentIntent->client_secret;
+        }
         
         $content = View::render('pages/shop/paymentconfirm', [
             'method' => $postVars['payment_method'],
@@ -95,20 +144,31 @@ class Payment extends Base{
             'country' => $postVars['payment_country'],
             'email' => $postVars['payment_email'],
             'price' => $final_price,
+            'clientSecret' => $stripeClientSecret,
         ]);
         return parent::getBase('Webshop', $content, 'donate');
     }
 
     public static function viewPaymentSummary($request)
     {
+        // if we have the reference GET param we can just render the summary
+        if (isset($_GET['reference'])) {
+            $payment = EntityPayments::getPayment('reference = "' . $_GET['reference'] . '"')->fetchObject();
+            if (!$payment) {
+                $request->getRouter()->redirect('/payment');
+            }
+            $content = View::render('pages/shop/paymentsummary', [
+                'payment' => $payment,
+                'coins' => $payment->total_coins,
+            ]);
+            return parent::getBase('Webshop', $content, 'donate');
+        }
+
         $idLogged = SessionAdminLogin::idLogged();
         $dbAccount = EntityAccount::getAccount([ 'id' => $idLogged])->fetchObject();
         $donateConfigs = EntityServerConfig::getInfoWebsite([ 'id' => 1])->fetchObject();
         $postVars = $request->getPostVars();
 
-        if($postVars['TermsOfService'] != 1){
-            $request->getRouter()->redirect('/payment');
-        }
         if(!isset($postVars['payment_coins'])){
             $request->getRouter()->redirect('/payment');
         }
@@ -122,16 +182,6 @@ class Payment extends Base{
             $request->getRouter()->redirect('/payment');
         }
 
-        if ($donateConfigs->mercadopago == 0) {
-            $request->getRouter()->redirect('/payment');
-        }
-        if ($donateConfigs->pagseguro == 0) {
-            $request->getRouter()->redirect('/payment');
-        }
-        if ($donateConfigs->paypal == 0) {
-            $request->getRouter()->redirect('/payment');
-        }
-
         if(!filter_var($postVars['payment_email'], FILTER_VALIDATE_EMAIL)){
             $request->getRouter()->redirect('/payment');
         }
@@ -142,15 +192,30 @@ class Payment extends Base{
         {
             case 'paypal':
                 $url_method = 1;
+                if ($donateConfigs->paypal == 0) {
+                    $request->getRouter()->redirect('/payment');
+                }
                 break;
             case 'pagseguro':
                 $url_method = 2;
+                if ($donateConfigs->pagseguro == 0) {
+                    $request->getRouter()->redirect('/payment');
+                }
                 break;
             case 'pix':
                 $url_method = 3;
                 break;
             case 'mercadopago':
                 $url_method = 4;
+                if ($donateConfigs->mercadopago == 0) {
+                    $request->getRouter()->redirect('/payment');
+                }
+                break;
+            case 'stripe':
+                $url_method = 5;
+                if ($donateConfigs->stripe == 0) {
+                    $request->getRouter()->redirect('/payment');
+                }
                 break;
             default:
                 $url_method = 0;
@@ -163,14 +228,10 @@ class Payment extends Base{
             $request->getRouter()->redirect('/payment');
         }
         $filter_coins = filter_var($postVars['payment_coins'], FILTER_SANITIZE_NUMBER_INT);
-        $final_price = $donateConfigs->coin_price;
-        if($final_price == 0){
-            $request->getRouter()->redirect('/payment');
-        }
-        $price = $final_price * $filter_coins;
+        $price = calculatePrice($filter_coins);
 
         // METHOD PAGSEGURO
-        if($url_method == 2){
+        if($url_method == 2) {
             $reference = uniqid();
             $checkout = [
                 'reference' => $reference,
@@ -195,7 +256,7 @@ class Payment extends Base{
         }
 
         // METHOD PAYPAL
-        if($url_method == 1){
+        if($url_method == 1) {
             $reference = uniqid();
             $checkout = [
                 'reference' => $reference,
@@ -220,10 +281,10 @@ class Payment extends Base{
         }
 
         // METHOD PIX
-        if($url_method == 3){}
+        if($url_method == 3) {}
 
         // METHOD MERCADO PAGO
-        if($url_method == 4){
+        if($url_method == 4) {
             $reference = uniqid();
             $checkout = [
                 'reference' => $reference,
@@ -251,6 +312,7 @@ class Payment extends Base{
             'email' => $filter_email,
             'method' => $url_method,
             'code_payment' => $code_payment ?? null,
+            'coins' => $filter_coins,
         ]);
         return parent::getBase('Webshop', $content, 'donate');
     }

@@ -28,6 +28,7 @@ View::init([
     'URL' => URL,
     'CACHE' => URL.'/resources/cache',
     'IMAGE_PATH' => URL.'/resources/images',
+    'STRIPE_PUBLIC_KEY' => $_ENV['STRIPE_PUBLIC_KEY'],
     'STYLES_PATH' => URL.'/resources/styles',
     'JS_PATH' => URL.'/resources/javascripts',
 ]);

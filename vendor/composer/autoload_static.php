@@ -48,6 +48,7 @@ class ComposerStaticInited246462c23c9e983d07b757f2901524
             'Symfony\\Component\\Mime\\' => 23,
             'Symfony\\Component\\Mailer\\' => 25,
             'Symfony\\Component\\EventDispatcher\\' => 34,
+            'Stripe\\' => 7,
         ),
         'R' => 
         array (
@@ -181,6 +182,10 @@ class ComposerStaticInited246462c23c9e983d07b757f2901524
         'Symfony\\Component\\EventDispatcher\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/event-dispatcher',
+        ),
+        'Stripe\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
         ),
         'RingCentral\\Psr7\\' => 
         array (
