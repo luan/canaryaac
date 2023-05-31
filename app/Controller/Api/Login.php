@@ -480,7 +480,7 @@ class Login extends Api{
                 $email = $postVars['email'] ?? '';
                 $password = $postVars['password'] ?? '';
                 $convertPass = sha1($password);
-                $account = EntityAccount::getAccount('email = "'.$email.'"')->fetchObject();
+                $account = EntityAccount::getAccount([ 'email' => $email])->fetchObject();
                 if(empty($account)){
                     return self::sendError('Email or password is not correct.', 3);
                 }

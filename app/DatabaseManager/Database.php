@@ -150,6 +150,27 @@ class Database{
     return $this->execute($query);
   }
 
+  public function selectSafe($where = null, $order = null, $limit = null, $fields = '*'){
+    //DADOS DA QUERY
+    $wheres = [];
+    foreach ($where as $key => $value) {
+      $wheres[] = $key . ' = ?';
+    }
+    $whereString = implode(' AND ', $wheres);
+    if (strlen($whereString)) {
+      $whereString = 'WHERE ' . $whereString;
+    }
+    $order = $order && strlen($order) ? 'ORDER BY '.$order : '';
+    $limit = $limit && strlen($limit) ? 'LIMIT '.$limit : '';
+
+    //MONTA A QUERY
+    $query = 'SELECT '.$fields.' FROM '.$this->table.' '.$whereString.' '.$order.' '.$limit;
+    $stmt = $this->connection->prepare($query);
+
+    //EXECUTA A QUERY
+    return $this->execute($query, array_values($where));
+  }
+
   public function selectLike($where = null, $like = null, $order = null, $limit = null, $fields = '*'){
     //DADOS DA QUERY
     $where = $where && strlen($where) ? 'WHERE '.$where : '';

@@ -14,7 +14,7 @@ use App\DatabaseManager\Database;
 class Account{
     
     public static function getAccount($where = null, $order = null, $limit = null, $fields = '*'){
-        return (new Database('accounts'))->select($where, $order, $limit, $fields);
+        return (new Database('accounts'))->selectSafe($where, $order, $limit, $fields);
     }
 
     public static function getAccountRegistration($where = null, $order = null, $limit = null, $fields = '*'){
